@@ -2,9 +2,8 @@ import com.kryonite.modules.operations.*;
 
 class OperationQueueExample {
     /**
-     * In this example, op1, op2, begin execution in parallel, while op3, op4 wait as they depend on op1, op2.
-     * Op3 then starts as soon as op1 finishes.
-     * Op4 only begins once op2 (Longer Task), op3 are both finished.
+     * In this example, op1, op2, op3 begin execution in parallel, while op4 waits as it depends on op2, op3.
+     * Op4 only begins after op2 (Longer Task), op3 are both finished.
      * Once all operations finish, then the final operation is executed.
     */
     public static void main(String[] args) throws Exception {

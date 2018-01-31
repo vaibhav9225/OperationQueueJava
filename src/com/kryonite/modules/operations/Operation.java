@@ -20,6 +20,7 @@ public abstract class Operation implements Runnable {
     private AtomicBoolean canProceedWhenDependenciesAborted = new AtomicBoolean(false);
     private OperationQueue operationQueue;
     private Future operationFuture = null;
+    private CompletionHandler completionHandler = null;
     private OperationList dependencyList = new OperationList();
     private OperationList subscriberList = new OperationList();
     private List<OperationCondition> conditionList = new ArrayList<>();
@@ -168,6 +169,7 @@ public abstract class Operation implements Runnable {
         }
         notifySubscribers();
         notifyObservers(OperationState.FINISHED);
+        notifyCompletionHandler();
     }
 
     /**
@@ -184,6 +186,7 @@ public abstract class Operation implements Runnable {
         }
         notifySubscribers();
         notifyObservers(OperationState.ABORTED);
+        notifyCompletionHandler();
     }
 
     /**
@@ -222,6 +225,14 @@ public abstract class Operation implements Runnable {
         for (OperationObserver operationObserver : operationObservers) {
             addObserver(operationObserver);
         }
+    }
+
+    /**
+     * Sets the completion handler for the operation.
+     * @param completionHandler
+     */
+    public void setCompletionHandler(CompletionHandler completionHandler) {
+        this.completionHandler = completionHandler;
     }
 
     void setOperationFuture(Future operationFuture) {
@@ -288,6 +299,12 @@ public abstract class Operation implements Runnable {
             operation.notifyDependencyComplete(this);
         }
         subscriberList.clear();
+    }
+
+    private synchronized void notifyCompletionHandler() {
+        if (completionHandler != null) {
+            completionHandler.onComplete();
+        }
     }
 
     private enum OperationState {

@@ -101,7 +101,12 @@ public class OperationQueue {
     }
 
     void executeOperation(Operation operation) {
-        if (operation.isAborted() || operation.isFinished() || operation.isExecuting()) {
+        if (operation.isAborted() || operation.isFinished()) {
+            notifyOperationComplete(operation);
+            return;
+        }
+
+        if (operation.isExecuting()) {
             return;
         }
 

@@ -1,7 +1,4 @@
-import com.kryonite.modules.operations.Operation;
-import com.kryonite.modules.operations.OperationQueue;
-import com.kryonite.modules.operations.TimeoutObserver;
-import com.kryonite.modules.operations.OperationCondition;
+import com.kryonite.modules.operations.*;
 
 class OperationQueueExample {
     /**
@@ -27,7 +24,6 @@ class OperationQueueExample {
         op2.addObserver(new TimeoutObserver(600));
 
         Op op3 = new Op("op3", 5);
-        op3.addDependency(op1);
 
         Op op4 = new Op("op4", 5);
         // Takes dependencies on op2, op3 and ignores op4.
@@ -52,6 +48,13 @@ class OperationQueueExample {
         finalOperation.addDependencies(op1, op2, op3, op4);
         // By setting this to true, finish operation proceeds even if any of its dependencies are cancelled or aborted.
         finalOperation.canProceedWhenDependenciesAborted(true);
+        // Sets the completion handler that listens to the completion of an operation.
+        finalOperation.setCompletionHandler(new CompletionHandler() {
+            @Override
+            protected void onComplete() {
+                System.out.println("All operations are now complete.");
+            }
+        });
 
         // Marking this to true, auto finished the operations on queue after completion.
         queue1.canAutoFinishOperationsOnCompletion(true);

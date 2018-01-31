@@ -39,20 +39,13 @@ public class OperationQueue {
      * @param operation
      */
     public void addOperation(Operation operation) {
+        operation.setOperationQueue(this);
+
         if (executor == null || executor.isShutdown() || executor.isTerminated()) {
             initExecutor();
         }
 
-        if (operationList.containsOperation(operation)) {
-            return;
-        }
-
-        operation.setOperationQueue(this);
-        if (maxExecutionTime != -1) {
-            operation.addObserver(new TimeoutObserver(maxExecutionTime));
-        }
-        operationList.addOperation(operation);
-
+        trackOperation(operation);
         if (!operation.hasUnfinishedDependencies()) {
             executeOperation(operation);
         }
@@ -108,6 +101,14 @@ public class OperationQueue {
     }
 
     void executeOperation(Operation operation) {
+        if (operation.isAborted() || operation.isFinished() || operation.isExecuting()) {
+            return;
+        }
+
+        if (maxExecutionTime != -1) {
+            operation.addObserver(new TimeoutObserver(maxExecutionTime));
+        }
+
         Future operationFuture = executor.submit(operation);
         operation.setOperationFuture(operationFuture);
     }
@@ -118,6 +119,13 @@ public class OperationQueue {
         if (operationList.isEmpty()) {
             executor.shutdownNow();
         }
+    }
+
+    private void trackOperation(Operation operation) {
+        if (operationList.containsOperation(operation)) {
+            return;
+        }
+        operationList.addOperation(operation);
     }
 
     private synchronized void initExecutor() {

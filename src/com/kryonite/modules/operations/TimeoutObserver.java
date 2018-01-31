@@ -29,7 +29,7 @@ public class TimeoutObserver extends OperationObserver {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (operation != null && !isOperationComplete) {
+                if (operation != null && !isOperationComplete && !operation.isAborted() && !operation.isFinished()) {
                     operation.cancel();
                 }
                 operation = null;
@@ -39,18 +39,18 @@ public class TimeoutObserver extends OperationObserver {
 
     @Override
     public void operationDidAbort() {
-        isOperationComplete = true;
         cancelTimer();
     }
 
     @Override
     public void operationDidFinish() {
-        isOperationComplete = true;
         cancelTimer();
     }
 
     private void cancelTimer() {
+        isOperationComplete = true;
         timer.cancel();
         timer.purge();
+        operation = null;
     }
 }

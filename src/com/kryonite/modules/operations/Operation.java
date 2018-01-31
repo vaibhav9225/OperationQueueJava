@@ -158,12 +158,14 @@ public abstract class Operation implements Runnable {
      * Finishes the operation and removes it from the queue and notifies other operations that depend on it.
      */
     public synchronized void finish() {
-        if (isAborted()) {
+        if (isAborted() || isFinished()) {
             return;
         }
 
         isFinished.set(true);
-        operationQueue.notifyOperationComplete(this);
+        if (operationQueue != null) {
+            operationQueue.notifyOperationComplete(this);
+        }
         notifySubscribers();
         notifyObservers(OperationState.FINISHED);
     }
@@ -172,12 +174,14 @@ public abstract class Operation implements Runnable {
      * Aborts the operation and removes it from the queue and notifies other operations that depend on it.
      */
     public synchronized void abort() {
-        if (isFinished()) {
+        if (isFinished() || isAborted()) {
             return;
         }
 
         isAborted.set(true);
-        operationQueue.notifyOperationComplete(this);
+        if (operationQueue != null) {
+            operationQueue.notifyOperationComplete(this);
+        }
         notifySubscribers();
         notifyObservers(OperationState.ABORTED);
     }
@@ -228,7 +232,7 @@ public abstract class Operation implements Runnable {
         this.operationQueue = operationQueue;
     }
 
-    boolean hasUnfinishedDependencies() {
+    synchronized boolean hasUnfinishedDependencies() {
         return !dependencyList.isEmpty();
     }
 
@@ -247,6 +251,7 @@ public abstract class Operation implements Runnable {
         }
 
         dependencyList.removeOperation(operation);
+
         if (dependencyList.isEmpty() && operationQueue != null) {
             operationQueue.executeOperation(this);
         }

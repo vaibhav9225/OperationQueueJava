@@ -12,8 +12,8 @@ class OperationQueueExample {
     */
     public static void main(String[] args) throws Exception {
         OperationQueue queue1 = new OperationQueue();
-        // Sets a maximum execution time of 10 milliseconds on all queue operations.
-        queue1.setOperationTimeout(10);
+        // Sets a maximum execution time of 400 milliseconds on all queue operations.
+        queue1.setOperationTimeout(400);
 
         OperationQueue queue2 = new OperationQueue();
 
@@ -22,7 +22,9 @@ class OperationQueueExample {
         Op op2 = new Op("op2", 100000);
         // Adds a timeout observer.
         // If two timeout observers are set on an operation/queue, the smaller one takes preference.
-        op2.addObserver(new TimeoutObserver(6));
+        // These times are sufficient based on the system you run them on.
+        // On slower systems, 600ms might result in a timeout. In which case you should increase them.
+        op2.addObserver(new TimeoutObserver(600));
 
         Op op3 = new Op("op3", 5);
         op3.addDependency(op1);

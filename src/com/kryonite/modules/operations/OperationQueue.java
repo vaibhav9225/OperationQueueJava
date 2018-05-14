@@ -14,6 +14,7 @@ public class OperationQueue {
     private long maxExecutionTime = -1;
     private int maxConcurrentOperations = 0;
     private ExecutorService executor = null;
+    private boolean terminateExecutorAutomatically = true;
     private boolean autoFinishOperationsOnCompletion = false;
     private OperationList operationList = new OperationList();
 
@@ -32,6 +33,15 @@ public class OperationQueue {
      */
     public OperationQueue(int maxConcurrentOperations) {
         setMaxConcurrentOperationsCount(maxConcurrentOperations);
+    }
+
+    /**
+     * Initializes operation queue with a custom executor.
+     * @param customExecutor
+     */
+    public OperationQueue(ExecutorService customExecutor) {
+        this.executor = customExecutor;
+        terminateExecutorAutomatically = false;
     }
 
     /**
@@ -121,7 +131,7 @@ public class OperationQueue {
     synchronized void notifyOperationComplete(Operation operation) {
         operationList.removeOperation(operation);
 
-        if (operationList.isEmpty()) {
+        if (operationList.isEmpty() && terminateExecutorAutomatically) {
             executor.shutdownNow();
         }
     }
